@@ -62,6 +62,7 @@ size_t writeCallback(void *contents, size_t size, size_t nmemb, std::string *dat
 
 // Function to fetch external IP address using libcurl
 std::string getExternalIP() {
+    std::cout << "Fetching external IP address..." << std::endl;
     std::string ipAddress;
     CURL *curl;
     CURLcode res;
@@ -84,6 +85,7 @@ std::string getExternalIP() {
 }
 // Function to read stored IP address from a file
 std::string readStoredIP() {
+    std::cout << "Reading stored IP address..." << std::endl;
     std::ifstream file(filename);
     std::string storedIP;
     if (file.is_open()) {
@@ -120,6 +122,7 @@ int main() {
         // Write new IP and notify
         writeNewIP(externalIP);
         std::cout << "New IP detected: " << externalIP << std::endl;
+        std::cout << "Notifying via Telegram..." << std::endl;
         // Add code to notify here (e.g., sending an email or notification)
         bot.getApi().sendMessage(chat_id, "New IP detected: " + externalIP);
         exit(0);
