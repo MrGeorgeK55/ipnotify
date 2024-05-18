@@ -4,9 +4,52 @@
 #include <curl/curl.h>
 // working, now to add telegram bot api to send message to user
 #include <tgbot/tgbot.h>
+#include <libconfig.h++>
 
-TgBot::Bot bot("TELEGRAM_BOT_TOKEN");
-int chat_id = 123456789; // replace with your chat id
+
+
+
+// variables
+
+// telegram
+std::string telegramToken;
+int chat_id = 0;
+
+// filename
+std::string filename;
+
+
+
+
+// get the variables from a .config file
+void get_config()
+{
+    //check if config file exists
+    std::ifstream file("config.cfg");
+    if (!file)
+    {
+        std::cerr << "Error: Unable to open config file or file dont exist\n";
+        exit(1);
+    }
+
+    std::cout << "Reading config file" << std::endl;
+    libconfig::Config cfg;
+    try {
+        cfg.readFile("config.cfg");
+    } catch(const libconfig::ParseException &pex) {
+        std::cerr << "Parse error at " << pex.getLine() << " - " << pex.getError() << std::endl;
+        exit(1);
+    }
+
+    // telegram
+    std::cout << "Reading Telegram variables" << std::endl;
+    telegramToken = cfg.lookup("telegram_token").c_str();
+    chat_id = cfg.lookup("telegram_chat_id");
+    //filename
+    filename = cfg.lookup("file_name").c_str();
+
+    std::cout << "Config file read" << std::endl;
+}
 
 
 // v1.0
@@ -41,7 +84,7 @@ std::string getExternalIP() {
 }
 // Function to read stored IP address from a file
 std::string readStoredIP() {
-    std::ifstream file("stored_ip.txt");
+    std::ifstream file(filename);
     std::string storedIP;
     if (file.is_open()) {
         std::getline(file, storedIP);
@@ -52,7 +95,7 @@ std::string readStoredIP() {
 
 // Function to write new IP address to a file
 void writeNewIP(const std::string& newIP) {
-    std::ofstream file("stored_ip.txt");
+    std::ofstream file(filename);
     if (file.is_open()) {
         file << newIP;
         file.close();
@@ -61,8 +104,9 @@ void writeNewIP(const std::string& newIP) {
 
 int main() {
     // Initialize libcurl
+    get_config();
     curl_global_init(CURL_GLOBAL_ALL);
-
+    TgBot::Bot bot(telegramToken);
     // Get external IP
     std::string externalIP = getExternalIP();
     if (externalIP == "") {
