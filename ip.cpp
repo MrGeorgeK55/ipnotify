@@ -6,8 +6,8 @@
 #include <tgbot/tgbot.h>
 #include <libconfig.h++>
 
+// g++ -o ip ip.cpp -I/usr/local/include -L/usr/local/lib -lTgBot -lboost_system -lssl -lcrypto -lpthread -lconfig++ -lcurl 
 // v1.1
-
 // variables
 
 // telegram
