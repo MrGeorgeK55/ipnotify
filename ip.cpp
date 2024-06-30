@@ -17,6 +17,11 @@ int chat_id = 0;
 // filename
 std::string filename;
 
+// other
+int retryLimit = 5; // Set a retry limit to prevent infinite loops.
+    int attempts = 0;
+
+
 // get the variables from a .config file
 void get_config()
 {
@@ -62,6 +67,10 @@ std::string getExternalIP()
 {
     std::cout << "Fetching external IP address..." << std::endl;
     std::string ipAddress;
+    int retryLimit = 5; // Set a retry limit to prevent infinite loops.
+    int attempts = 0;
+    do 
+    {
     CURL *curl;
     CURLcode res;
     curl = curl_easy_init();
@@ -77,11 +86,24 @@ std::string getExternalIP()
         }
         curl_easy_cleanup(curl);
     }
-    if (ipAddress == "")
+    if (ipAddress.find("error") == 0 || ipAddress == "")
+        {
+            std::cout << "Error: " << ipAddress << std::endl;
+            std::cout << "Retrying..." << std::endl;
+            attempts++;
+        }
+        else
+        {
+            break; // Exit loop if a valid IP address is obtained.
+        }
+    } while (attempts < retryLimit);
+
+    if (attempts == retryLimit)
     {
-        std::cerr << "Failed to fetch IP address." << std::endl;
-        return std::string();
+        std::cout << "Failed to obtain IP address after " << retryLimit << " attempts." << std::endl;
+        ipAddress = "";
     }
+
     return ipAddress;
 }
 // Function to read stored IP address from a file
@@ -119,16 +141,10 @@ int main()
     std::string externalIP = getExternalIP();
     if (externalIP == "")
     {
-        return 1;
+        std::cerr << "Error: Unable to obtain external IP address." << std::endl;
+        exit(1);
     }
-    // i got an malfunction where the ip read as  "error code: *""
-    // already got error 522 and 524 and got it stored in the file instead of the ip
-    // so if the ip starts with "error code: " then retry the function or exit
-    if (externalIP.find("error code: ") == 0)
-    {
-        std::cout << "Error: " << externalIP << std::endl;
-        return 1;
-    }
+
     // Read stored IP
     std::string storedIP = readStoredIP();
 
